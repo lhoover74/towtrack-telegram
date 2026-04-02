@@ -23,6 +23,13 @@ def create_vehicle(vehicle: schemas.VehicleCreate, db: Session = Depends(get_db)
     return db_vehicle
 
 
-@router.get("/{plate}")
+@router.get("/{plate}", response_model=list[schemas.VehicleOut])
 def search_vehicle(plate: str, db: Session = Depends(get_db)):
-    return db.query(models.Vehicle).filter(models.Vehicle.plate == plate).all()
+    plate_filter = f"%{plate}%"
+    records = (
+        db.query(models.Vehicle)
+        .filter(models.Vehicle.plate.ilike(plate_filter))
+        .order_by(models.Vehicle.created_at.desc())
+        .all()
+    )
+    return records
